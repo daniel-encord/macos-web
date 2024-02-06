@@ -6,45 +6,122 @@
   import Modulo from '~icons/icon-park-outline/percentage';
   import Division from '~icons/ph/divide-bold';
   import Multiply from '~icons/uil/multiply';
+
+  type Operation = '+' | '-' | '*' | '/' | '%';
+
+  let currentInput = '';
+  let previousInput = '';
+  let operation: Operation | null = null;
+
+  const handleNumber = (number: `${number}` | '.'): void => {
+    if (currentInput === '0' && number !== '.') {
+      currentInput = number;
+    } else if (currentInput.includes('.') && number === '.') {
+      return;
+    } else {
+      currentInput += number;
+    }
+  };
+
+  const handleOperation = (op: Operation): void => {
+    if (currentInput === '') return;
+    if (previousInput !== '') {
+      calculate();
+    }
+    operation = op;
+    previousInput = currentInput;
+    currentInput = '';
+  };
+
+  const formatResult = (result: number): string => {
+    return Number(result.toFixed(10)).toString();
+  };
+
+  const calculate = (): void => {
+    let result: number;
+    const prev = parseFloat(previousInput);
+    const current = parseFloat(currentInput);
+    if (Number.isNaN(prev) || Number.isNaN(current)) return;
+
+    switch (operation) {
+      case '+':
+        result = prev + current;
+        break;
+      case '-':
+        result = prev - current;
+        break;
+      case '*':
+        result = prev * current;
+        break;
+      case '/':
+        if (current === 0) return;
+        result = prev / current;
+        break;
+      case '%':
+        result = prev % current;
+        break;
+      default:
+        throw new Error(`Invalid operation: ${operation}`);
+    }
+    currentInput = formatResult(result);
+    operation = null;
+    previousInput = '';
+  };
+
+  const clear = () => {
+    currentInput = '';
+    previousInput = '';
+    operation = null;
+  };
+
+  const handlePlusMinus = () => {
+    if (currentInput) {
+      currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
+    }
+  };
 </script>
 
 <section class="container">
   <header class="app-window-drag-handle" />
 
-  <section class="show-area">0</section>
+  <section class="show-area">{currentInput || previousInput || '0'}</section>
 
   <section class="buttons-container">
-    <button class="top-row-button"> AC </button>
-    <button class="top-row-button">
+    <button class="top-row-button" on:click={clear}> AC </button>
+    <button class="top-row-button" on:click={handlePlusMinus}>
       <PlusMinusVariant />
     </button>
-    <button class="top-row-button">
+    <button class="top-row-button" on:click={() => handleOperation('%')}>
       <Modulo />
     </button>
-    <button class="operation-button">
+    <button class="operation-button" on:click={() => handleOperation('/')}>
       <Division />
     </button>
-    <button class="number-button"> 7 </button>
-    <button class="number-button"> 8 </button>
-    <button class="number-button"> 9 </button>
-    <button class="operation-button">
+    <button class="number-button" on:click={() => handleNumber('7')}> 7 </button>
+    <button class="number-button" on:click={() => handleNumber('8')}> 8 </button>
+    <button class="number-button" on:click={() => handleNumber('9')}> 9 </button>
+    <button class="operation-button" on:click={() => handleOperation('*')}>
       <Multiply />
     </button>
-    <button class="number-button"> 4 </button>
-    <button class="number-button"> 5 </button>
-    <button class="number-button"> 6 </button>
-    <button class="operation-button">
+    <button class="number-button" on:click={() => handleNumber('4')}> 4 </button>
+    <button class="number-button" on:click={() => handleNumber('5')}> 5 </button>
+    <button class="number-button" on:click={() => handleNumber('6')}> 6 </button>
+    <button class="operation-button" on:click={() => handleOperation('-')}>
       <Minus />
     </button>
-    <button class="number-button"> 1 </button>
-    <button class="number-button"> 2 </button>
-    <button class="number-button"> 3 </button>
-    <button class="operation-button"> <Plus /> </button>
-    <button class="number-button curved-bottom-left-button" style:grid-column="1 / span 2">
+    <button class="number-button" on:click={() => handleNumber('1')}> 1 </button>
+    <button class="number-button" on:click={() => handleNumber('2')}> 2 </button>
+    <button class="number-button" on:click={() => handleNumber('3')}> 3 </button>
+    <button class="operation-button" on:click={() => handleOperation('+')}>
+      <Plus />
+    </button>
+    <button class="number-button curved-bottom-left-button" style:grid-column="1 / span 2" on:click={() => handleNumber('0')}>
       0
     </button>
-    <button class="number-button"> . </button>
-    <button class="operation-button curved-bottom-right-button"> <Equal /> </button>
+    <button class="number-button" on:click={() => handleNumber('.')}> . </button>
+    <button class="operation-button curved-bottom-right-button" on:click={calculate}>
+      <Equal />
+    </button>
   </section>
 </section>
 
@@ -81,6 +158,10 @@
       font-weight: 300 !important;
       color: white;
       fill: white;
+
+      &:active { 
+        background-color: hsla(0, 0%, 80%, 0.1);
+      }
     }
 
     :global(svg) {
